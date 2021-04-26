@@ -1,5 +1,10 @@
 <p> {{title}} </p>
 
-<p *ngFor = "let user of users">
-    {{user.userName}}
-</p>
+<ul *ngFor = "let user of users">
+    <li>  
+        <p style="color:red">
+            {{user.userName}}
+       </p>
+
+    </li>
+</ul>
