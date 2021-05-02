@@ -1,10 +1,6 @@
-<p> {{title}} </p>
 
-<ul *ngFor = "let user of users">
-    <li>  
-        <p style="color:red">
-            {{user.userName}}
-       </p>
+<app-nav> </app-nav>
 
-    </li>
-</ul>
+<div class="container" style="margin-top: 100px;">
+ <router-outlet> </router-outlet>
+</div>

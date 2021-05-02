@@ -46,7 +46,6 @@ namespace API.Controllers
             // kiem tra user co ton tai hay ko
             var user = await this._context.User.SingleOrDefaultAsync(x => x.UserName == logindto.Username);
             if (user == null) return Unauthorized("Invalid UserName");
-
             // neu user ton tai thi lay PasswordHash so sanh
             using var hmac = new HMACSHA512(user.PasswordSalt);
             // password cua nguoi dung nhap vao
