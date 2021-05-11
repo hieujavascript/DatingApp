@@ -1,22 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
-using API.Data;
-using API.Entities;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using API.Interfaces;
+using API.Dtos;
+using AutoMapper;
+
 namespace API.Controllers
 {
     //=============  IMPORT in BaseAPIController ===========
     // [ApiController]
     // [Route("api/[controller]")]
+    [Authorize]
     public class UsersController : BaseAPIController
     {
-        private readonly DataContext _context; 
-        public UsersController(DataContext context)
+      //  private readonly DataContext _context;
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
+
+        public UsersController(IUserRepository userRepository , IMapper mapper)
         {
-            this._context = context;
+            this._userRepository = userRepository;
+            this._mapper = mapper;
         }
         // get data from client : https://localhost:5001/api/users
         // public ActionResult<IEnumerable<AppUser>> getUsers() {
@@ -24,19 +29,26 @@ namespace API.Controllers
         //    return user;
         // }
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<AppUser>>> getUsers() {
-            return await this._context.User.ToListAsync();
+        public async Task<ActionResult<IEnumerable<MemberDto>>> getUsers()
+        {
+            // var users = await this._userRepository.GetUsersAsync();
+            // var usersReturn = this._mapper.Map<IEnumerable<MemberDto>>(users);
+            // return Ok(usersReturn);
+            // return await this._context.User.ToListAsync();
+            var users = await this._userRepository.GetMembersAsync();
+            return Ok(users);
         }
-        [Authorize]
-        [HttpGet("{id}")]
-         public async Task<ActionResult<AppUser>> getUser(int id) {
-             return await this._context.User.FindAsync(id);
-         }
-        // public ActionResult<AppUser> getUser(int id) {
-        //    var user = this._context.User.Find(id);
-        //    return user;
-        // }
+        [HttpGet("{username}")]
+        public async Task<ActionResult<MemberDto>> getUser(string username)
+        {
+            //  var user = await this._userRepository.GetUserByUserNameAsync(username);
+            //  var userReturn = this._mapper.Map<MemberDto>(user);
+            // return userReturn;
+
+            var user = await this._userRepository.GetMemberAsync(username);
+            return user;
+       
+        }
     }
 
 }
