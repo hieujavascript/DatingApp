@@ -13,7 +13,11 @@ namespace API.extensions
     {
         public static IServiceCollection AddApplicationService(this IServiceCollection services , IConfiguration config ) 
             {
+            // đăng ký trong này để để có thể Inject vào Controller vào thời điểm Runtime
+            // services.Configure đọc dữ liệu trong appsettings.json 
+             services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
              services.AddScoped<ITokenService , TokenService>();
+             services.AddScoped<IPhotoService , PhotoService>();
              services.AddScoped<IUserRepository , UserRepository>();
              services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
              services.AddDbContext<DataContext>( options => {
