@@ -1,10 +1,14 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import {Member} from '../_models/member';
 import {MemberUpdate} from '../_models/memberUpdate';
+import { PaginatedResult } from '../_models/Pagination';
+import { User } from '../_models/user';
+import { UserParams } from '../_models/UserParams';
+import { AccountService } from './account.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -15,30 +19,82 @@ export class MembersService {
   //     Authorization: 'Bearer '+ JSON.parse(localStorage.getItem('user'))?.token
   //   })
   // }
-
+  memberCache = new Map();
   members: Member[] = [];
   baseUrl: string = environment.apiUrl;
+  user: User;
+  userParams: UserParams;
+  // tạo ra class và Interface 
+  // interface có các property giống y chang Header sẽ nhận từ Response.header.get('Pagination')
+  // class<T> là tập kết quả nhận đc thỏa với điều kiện đc trả về từ Server api router
 
-  constructor(private http: HttpClient ) { }
+  constructor(private http: HttpClient , private accountService: AccountService ) {
+    this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
+      this.user = user;
+      this.userParams = new UserParams(user);
+    })
+   }
 
-  getMembers(): Observable<Member[]> {
-    // khi mà Mảng Member co dữ liệu thi khong can goi ve API nữa
-    if(this.members.length  > 0 ) return of(this.members);
-    // khi mà mảnh members khong co du lieu thi quay ve Api lay
-    return this.http.get<Member[]>(this.baseUrl + "users").pipe(
-      map( members => {
-        this.members = members ;
-        return this.members; // return trong ham Map Operator sẽ trả về 1 mảng Obsevable<member[]>
+  getMembers(userParams: UserParams) {
+    // // khi mà Mảng Member co dữ liệu thi khong can goi ve API nữa
+    // if(this.members.length  > 0 ) return of(this.members);
+    // // khi mà mảnh members khong co du lieu thi quay ve Api lay
+    // CACHE dữ liệu
+    let userParamValue = Object.values(userParams).join('-');
+    var response = this.memberCache.get(userParamValue);  
+    // neu co response thi tra ve tu day , khong co thi tra ve tu server sau do luu vao cache
+    if(response) return of(response);
+
+    let params = this.getPaginationHeaders(userParams.pageNumber , userParams.pageSize);
+    params = params.append("minAge" , userParams.minAge.toString());
+    params = params.append("maxAge" , userParams.maxAge.toString());
+    params = params.append("gender" , userParams.gender);
+    params = params.append("OrderBy" , userParams.orderBy);
+    return this.getPaginationResult<Member[]>(this.baseUrl + "users" , params)
+               .pipe(map(response => {
+                this.memberCache.set(userParamValue , response); 
+                return response;
+               }));
+  }
+  public getPaginationResult<T>(url: string , params : HttpParams) {
+    const paginatedResult: PaginatedResult<T> = new PaginatedResult<T>();
+    return this.http.get<T>(url , {observe: 'response' , params}).pipe(
+      map(response => {
+        //console.log(response);
+        paginatedResult.result = response.body; // tra ve mot Pagination.result cho client ts
+
+        if(response.headers.get('Pagination') !== null ){
+         paginatedResult.pagination = JSON.parse(response.headers.get('pagination'));    
+        }
+        return paginatedResult;
       })
     )
   }
+
+  private getPaginationHeaders(pageNumber: number , pageSize: number) {
+    // gán giá trị và đưa vào router của http Api của trình duyệt nhu la tham số
+    let params = new HttpParams(); 
+    params = params.append('pageNumber' , pageNumber.toString());
+    params = params.append('pageSize' , pageSize.toString());
+    return params;
+  }
+
   getMember(username: string): Observable<Member> {
 
-    const member =  this.members.find(x => x.username == username);
-    if(member !== undefined) // neu co member
-    return of(member);
-
-    // nguoc lại ko co member thi quay ve goi API
+    // const member =  this.members.find(x => x.username == username);
+    // if(member !== undefined) // neu co member
+    // return of(member);
+    // // nguoc lại ko co member thi quay ve goi API
+    const member = [...this.memberCache.values()]
+                   .reduce((arr , elem) => arr.concat(elem.result) , [] ) // return ve 1 mảng Cache
+                   .find((member: Member) => {
+                    if(member.username === username)
+                    return member.username;
+                   } );
+   
+     if(member) {
+      return of(member);
+     }
     return this.http.get<Member>(this.baseUrl + "users/" + username);
   }
   updateMember(member: Member) {
@@ -48,6 +104,20 @@ export class MembersService {
         this.members[index] = member;
      })
    )
+  }
+
+
+  getUserParam() {
+    // duoc tao tren Contructor
+    return this.userParams;
+  }
+  setUserParam(param: UserParams) {
+    this.userParams = param;
+  }
+  resetUserParam() {
+    // user lay tren Contructor
+    this.userParams = new UserParams(this.user);
+    return this.userParams;
   }
   setMainPhoto(photoId: number) {
     // return ve mot  new UserDto gom {
@@ -60,4 +130,18 @@ export class MembersService {
   deletePhoto(photoId: number) {
     return this.http.delete(this.baseUrl + "users/delete-photo/"+photoId);
   }
+
+  addLike(username: string) {
+    return this.http.post(this.baseUrl + "likes/" + username , {});
+  }
+  getLike(predicate: string , pageNumber: number , pageSize:number) {
+    // predicate=" + predicate truyền trực tiếp trên câu Query
+    let params = this.getPaginationHeaders(pageNumber , pageSize);
+    // định nghĩa giá trị tham số Prediacate
+    params = params.append('predicate' , predicate); // noi params vao trong header
+    //params = params.append('iloveyou' , 'pac pac');
+    return this.getPaginationResult<Partial<Member[]>>(this.baseUrl + "likes" , params);
+    // return this.http.get<Partial<Member[]>>(this.baseUrl + "likes?predicate=" + predicate);
+  } // 2:27
+
 }

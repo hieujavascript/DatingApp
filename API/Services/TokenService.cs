@@ -18,7 +18,7 @@ namespace API.Services
         public TokenService(IConfiguration config)
         {
             // chuoi Serect Key
-                this._key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
+                this._key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));                
            // _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
         }
 
@@ -28,7 +28,9 @@ namespace API.Services
             var claims = new List<Claim>
             {
                 // new Claim(JwtRegisteredClaimNames.NameId, user.UserName)
-                   new Claim(JwtRegisteredClaimNames.NameId, user.UserName),
+                   new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+                   new Claim(JwtRegisteredClaimNames.NameId , user.Id.ToString())
+
             };  
             // duoc su dung khi chung ta Write Token
             // var creds = new SigningCredentials(_key , SecurityAlgorithms.HmacSha512Signature);

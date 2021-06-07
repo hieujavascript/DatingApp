@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Http;
 using API.Entities;
 using API.Extensions;
 using System.Linq;
+using API.Helpers;
+using API.extensions;
 
 namespace API.Controllers
 {
@@ -39,15 +41,27 @@ namespace API.Controllers
         //    return user;
         // }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> getUsers()
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
         {
             // var users = await this._userRepository.GetUsersAsync();
             // var usersReturn = this._mapper.Map<IEnumerable<MemberDto>>(users);
             // return Ok(usersReturn);
             // return await this._context.User.ToListAsync();
-
-
-            var users = await this._userRepository.GetMembersAsync();
+           
+            var username = User.getUserName();
+            var user = await this._userRepository.GetUserByUserNameAsync(username);
+            userParams.CurrentUsername = user.UserName;
+            // neu router trinh duyet ma Null thi gan nguoc gender 
+            // lisa is female thi router se la male
+            if(string.IsNullOrEmpty(userParams.Gender))
+            {
+               var gender = user.Gender == "male" ? "female" : "male";
+               userParams.Gender = gender; //  set giá trị Gender cho UserParam
+            }
+            var users = await this._userRepository.GetMembersAsync(userParams);
+            // cập nhật lại header cho client sau khi thay doi Tham so Query o Router trinh duyet
+            Response.AddPaginationHeader(users.CurrentPage, users.PageSize,
+                users.TotalCount, users.TotalPages);
             return Ok(users);
         }
         [HttpGet("{username}" , Name = "getUser")]

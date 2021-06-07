@@ -40,7 +40,7 @@ namespace API.Controllers
             using var hmac = new HMACSHA512(); // keywork using nghia la lấy xong rồi hủy;            
             // lay doi tuong AppUser tu Auto Mapper
             var user = this._mapper.Map<AppUser>(registerDto);
-            var cc = user.UserName;
+           // var cc = user.UserName;
             user.UserName = registerDto.Username;
             user.PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(registerDto.Password));
             user.PasswordSalt = hmac.Key;
@@ -53,7 +53,8 @@ namespace API.Controllers
             return new UserDto {
                 Username = user.UserName , 
                 Token = this._tokenService.CreateToken(user),
-                knownAs = user.KnownAs                
+                knownAs = user.KnownAs , 
+                Gender = user.Gender              
             };
         }
         [HttpPost("login")]
@@ -77,8 +78,9 @@ namespace API.Controllers
                 Username = user.UserName , 
                 Token = this._tokenService.CreateToken(user),
                 photoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
-                knownAs = user.KnownAs
-            };
+                knownAs = user.KnownAs,
+                Gender = user.Gender
+            }; 
         }
 
     }

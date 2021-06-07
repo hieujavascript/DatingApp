@@ -7,6 +7,8 @@ using API.Dtos;
 using AutoMapper.QueryableExtensions;
 using System.Linq;
 using AutoMapper;
+using API.Helpers;
+using System;
 
 namespace API.Data
 {
@@ -31,15 +33,25 @@ namespace API.Data
            // throw new System.NotImplementedException();
         }
 
-        public async Task<IEnumerable<MemberDto>> GetMembersAsync()
+        public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
         {
-            var members = await this._context.User
-                          .ProjectTo<MemberDto>(this._mapper.ConfigurationProvider)
-                          .ToListAsync();
-                          return members;
-          //  throw new System.NotImplementedException();
-        }
+            // AsQueryable tra ve IQueryable co thể next trong Router
+            var query =  this._context.User.AsQueryable();
+            query = query.Where(u => u.UserName != userParams.CurrentUsername);
+            query = query.Where(u => u.Gender == userParams.Gender);
+            var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
+            var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
+            query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob );
+            query = userParams.OrderBy switch {
+                // sap xep theo giam dan truong nam trong AppUser
+                "created" => query.OrderByDescending(u => u.Created), // created la ten tham so trong router
+                _ => query.OrderByDescending(u => u.LastActive) // day la truong hop mac dinh
+            };
 
+            return await PagedList<MemberDto>.CreateAysnc(
+            query.ProjectTo<MemberDto>(_mapper.ConfigurationProvider).AsNoTracking() , 
+            userParams.PageNumber , userParams.PageSize);
+        }
         public async Task<AppUser> GetUserByIdAsync(int id)
         {
             var user = await this._context.User.FindAsync(id);
