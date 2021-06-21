@@ -9,6 +9,7 @@ import { PaginatedResult } from '../_models/Pagination';
 import { User } from '../_models/user';
 import { UserParams } from '../_models/UserParams';
 import { AccountService } from './account.service';
+import { getPaginationHeaders, getPaginationResult } from './paginationhelper';
 @Injectable({
   providedIn: 'root'
 })
@@ -45,39 +46,19 @@ export class MembersService {
     // neu co response thi tra ve tu day , khong co thi tra ve tu server sau do luu vao cache
     if(response) return of(response);
 
-    let params = this.getPaginationHeaders(userParams.pageNumber , userParams.pageSize);
+    let params = getPaginationHeaders(userParams.pageNumber , userParams.pageSize);
     params = params.append("minAge" , userParams.minAge.toString());
     params = params.append("maxAge" , userParams.maxAge.toString());
     params = params.append("gender" , userParams.gender);
     params = params.append("OrderBy" , userParams.orderBy);
-    return this.getPaginationResult<Member[]>(this.baseUrl + "users" , params)
+    return getPaginationResult<Member[]>(this.baseUrl + "users" , params , this.http)
                .pipe(map(response => {
                 this.memberCache.set(userParamValue , response); 
                 return response;
                }));
   }
-  public getPaginationResult<T>(url: string , params : HttpParams) {
-    const paginatedResult: PaginatedResult<T> = new PaginatedResult<T>();
-    return this.http.get<T>(url , {observe: 'response' , params}).pipe(
-      map(response => {
-        //console.log(response);
-        paginatedResult.result = response.body; // tra ve mot Pagination.result cho client ts
 
-        if(response.headers.get('Pagination') !== null ){
-         paginatedResult.pagination = JSON.parse(response.headers.get('pagination'));    
-        }
-        return paginatedResult;
-      })
-    )
-  }
 
-  private getPaginationHeaders(pageNumber: number , pageSize: number) {
-    // gán giá trị và đưa vào router của http Api của trình duyệt nhu la tham số
-    let params = new HttpParams(); 
-    params = params.append('pageNumber' , pageNumber.toString());
-    params = params.append('pageSize' , pageSize.toString());
-    return params;
-  }
 
   getMember(username: string): Observable<Member> {
 
@@ -136,11 +117,11 @@ export class MembersService {
   }
   getLike(predicate: string , pageNumber: number , pageSize:number) {
     // predicate=" + predicate truyền trực tiếp trên câu Query
-    let params = this.getPaginationHeaders(pageNumber , pageSize);
+    let params = getPaginationHeaders(pageNumber , pageSize);
     // định nghĩa giá trị tham số Prediacate
     params = params.append('predicate' , predicate); // noi params vao trong header
     //params = params.append('iloveyou' , 'pac pac');
-    return this.getPaginationResult<Partial<Member[]>>(this.baseUrl + "likes" , params);
+    return getPaginationResult<Partial<Member[]>>(this.baseUrl + "likes" , params , this.http);
     // return this.http.get<Partial<Member[]>>(this.baseUrl + "likes?predicate=" + predicate);
   } // 2:27
 

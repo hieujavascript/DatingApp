@@ -42,6 +42,7 @@ namespace API.Data
             var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
             var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
             query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob );
+            // query ket hop voi Parametter
             query = userParams.OrderBy switch {
                 // sap xep theo giam dan truong nam trong AppUser
                 "created" => query.OrderByDescending(u => u.Created), // created la ten tham so trong router
@@ -61,10 +62,18 @@ namespace API.Data
         public async Task<AppUser> GetUserByUserNameAsync(string username)
         {
             var user = await this._context.User
-                                .Include(p => p.Photos)
+                                .Include(p => p.Photos) // Join
                                 .SingleOrDefaultAsync(
                 x => x.UserName == username);
             return user;
+
+                //  var query = await this._context.User
+                //             .Include(p => p.Photos)
+                //             .Where(u => u.UserName == username)
+                //             .SingleOrDefaultAsync();
+                // return query;
+
+            
         }
 
         public async Task<IEnumerable<AppUser>> GetUsersAsync()

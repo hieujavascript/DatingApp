@@ -10,6 +10,7 @@ namespace API.Data
         }
         public DbSet<AppUser> User { get; set; }
          public DbSet<UserLike> Likes { get; set; } // se sinh 1 bang ten Like"s"
+         public DbSet<Message> Messages {get ; set;}
         protected override void OnModelCreating(ModelBuilder builder) {
             base.OnModelCreating(builder);
             builder.Entity<UserLike>()
@@ -25,6 +26,15 @@ namespace API.Data
                    .WithMany(l => l.LikedByUsers) // day la 1 collection
                    .HasForeignKey(s => s.LikedUserId) // nguoi da login va like
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Message>()
+                   .HasOne(r => r.Recipient)
+                   .WithMany(m => m.MessageReceived)
+                   .OnDelete(DeleteBehavior.Restrict); // khi Recient xoa thi Sender van ko xoa
+            builder.Entity<Message>()
+                   .HasOne(s => s.Sender)
+                   .WithMany(m => m.MessageSent)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

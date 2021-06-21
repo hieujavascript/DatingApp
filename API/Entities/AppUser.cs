@@ -27,6 +27,8 @@ namespace API.Entities
         
         // danh sach nhung user dc like
         public ICollection<UserLike> LikedUsers { get; set; } 
+        public ICollection<Message> MessageSent { get; set; } // gửi
+        public ICollection<Message> MessageReceived { get; set; } // nhận
         // public int GetAge() {
         //     return DateOfBirth.CalculateAge();
         // }
