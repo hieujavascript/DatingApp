@@ -16,6 +16,9 @@ export class AppComponent implements OnInit {
   }
   setCurrentUser(){
     const user = JSON.parse(localStorage.getItem("user"));
-    this.accountService.setCurrentUser(user);
+    if(user)
+    {
+      this.accountService.setCurrentUser(user);      
+    }
   }
 }

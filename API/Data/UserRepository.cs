@@ -24,7 +24,7 @@ namespace API.Data
 
         public async Task<MemberDto> GetMemberAsync(string username)
         {
-            var member = await this._context.User
+            var member = await this._context.Users
                         .Where(x => x.UserName == username)
                         // hoac dùng select(user = new MemBerDot( Id = user.Id . UserName = user.UserName  ) ) Mapper thủ công
                         .ProjectTo<MemberDto>(this._mapper.ConfigurationProvider) // mapper tự động
@@ -36,7 +36,7 @@ namespace API.Data
         public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
         {
             // AsQueryable tra ve IQueryable co thể next trong Router
-            var query =  this._context.User.AsQueryable();
+            var query =  this._context.Users.AsQueryable();
             query = query.Where(u => u.UserName != userParams.CurrentUsername);
             query = query.Where(u => u.Gender == userParams.Gender);
             var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
@@ -55,13 +55,13 @@ namespace API.Data
         }
         public async Task<AppUser> GetUserByIdAsync(int id)
         {
-            var user = await this._context.User.FindAsync(id);
+            var user = await this._context.Users.FindAsync(id);
             return user;
         }
 
         public async Task<AppUser> GetUserByUserNameAsync(string username)
         {
-            var user = await this._context.User
+            var user = await this._context.Users
                                 .Include(p => p.Photos) // Join
                                 .SingleOrDefaultAsync(
                 x => x.UserName == username);
@@ -78,7 +78,7 @@ namespace API.Data
 
         public async Task<IEnumerable<AppUser>> GetUsersAsync()
         {
-            var users = await this._context.User
+            var users = await this._context.Users
                                     .Include(p => p.Photos)
                                     .ToListAsync();
             return users;

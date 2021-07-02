@@ -40,6 +40,9 @@ namespace API.Controllers
         //    var user = this._context.User.ToList();
         //    return user;
         // }
+
+
+       // [Authorize(Roles = "Admin")] // nhung nen dung AdminController Policy cho Role
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
         {
@@ -64,6 +67,7 @@ namespace API.Controllers
                 users.TotalCount, users.TotalPages);
             return Ok(users);
         }
+       // [Authorize(Roles = "Member") ]
         [HttpGet("{username}" , Name = "getUser")]
         public async Task<ActionResult<MemberDto>> getUser(string username)
         {
@@ -77,12 +81,10 @@ namespace API.Controllers
         [HttpPut]
         public async Task<ActionResult<MemberDto>> UpdateUser(MemberUpdateDto memberUpdateDto)
         {
-
             // lay ra username login 
             var username = User.getUserName(); //.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                                               // var usernames = User.FindAll(ClaimTypes.NameIdentifier)?.GetEnumerator();
+            // var usernames = User.FindAll(ClaimTypes.NameIdentifier)?.GetEnumerator();
             var user = await this._userRepository.GetUserByUserNameAsync(username);
-
             // neu ko map kieu  this._mapper.Map(memberUpdateDto , user); nay phai nhap thu cong nhu vay 
             // user.city =  memberUpdateDto.city lam tung cai mot
             this._mapper.Map(memberUpdateDto, user); // tu dong map va gán TẤT CẢ value tu DTO qua user
@@ -90,7 +92,6 @@ namespace API.Controllers
             bool status = await this._userRepository.SaveAllAsync();
             if (status == true) return NoContent();
             return BadRequest("can not update member dto");
-
         }
         [HttpPost("add-photo")]
         public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)

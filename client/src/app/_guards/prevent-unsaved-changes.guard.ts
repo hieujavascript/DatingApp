@@ -9,7 +9,7 @@ import { MemberEditComponent } from '../members/member-edit/member-edit.componen
 export class PreventUnsavedChangesGuard implements CanDeactivate<unknown> {
   canDeactivate(component: MemberEditComponent): boolean {
     if(component.editForm.dirty) {
-      return confirm("du lieu dang thay doi , ban co muon thoat nhungn khong save khong ?")
+      return confirm("du lieu dang thay doi , ban co muon thoat nhung khong save khong ?")
     }
     return true;
   }

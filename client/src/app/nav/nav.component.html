@@ -18,12 +18,19 @@
         <li class="nav-item">
           <a class="nav-link" routerLink = "/error" routerLinkActive= "active" >Error</a>
         </li>
+        <!-- *appHasRole = '["Admin","Moderator"]' -->
+        <!-- Neu bỏ *ngIf="f" thi no se chay truoc khi chung ta nhấn login và nó sẽ ko có dữ liệu Role -->
+      <ng-container *ngIf="f"> 
+        <li *appHasRole='["Admin", "Moderator"]' class="nav-item" >  
+          <a class="nav-link" routerLink = "/admin" routerLinkActive= "active" >Admin</a>
+        </li>
+      </ng-container>
     </ul>
 
     <div class="dropdown"  *ngIf = "accountService.currentUser$|async as user" dropdown>
       <img src="{{user.photoUrl || '../assets/user.png' }}" alt="{{user.username}}">
       <a  dropdownToggle class="btn btn-primary dropdown-toggle">
-        Wellcome {{user.knownAs | titlecase}}
+        Wellcome {{user.knownAs || user.username | titlecase}}
       </a>
       <div class="dropdown-menu mt3"  *dropdownMenu>
         <a routerLink='/member/edit' class="dropdown-item">Edit Profile</a>

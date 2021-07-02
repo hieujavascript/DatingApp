@@ -9,6 +9,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using API.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using API.Entities;
 
 namespace API
 { 
@@ -21,8 +23,11 @@ namespace API
             var services = scope.ServiceProvider;
             try {
                 var context = services.GetRequiredService<DataContext>();
+                var userManager = services.GetRequiredService<UserManager<AppUser>>(); 
+                var roleManager = services.GetRequiredService<RoleManager<AppRole>>(); 
                 await context.Database.MigrateAsync();
-                await Seed.SeedUsers(context);
+                await Seed.SeedUsers(userManager , roleManager);
+                //await Seed.SeedUsers(context);
             }
             catch(Exception ex) {
                 var logger = services.GetRequiredService<ILogger<Program>>();
@@ -30,7 +35,6 @@ namespace API
             }
             await host.RunAsync();
         }
-
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
