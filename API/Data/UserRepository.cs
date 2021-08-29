@@ -84,17 +84,23 @@ namespace API.Data
             return users;
             // throw new System.NotImplementedException();
         }
-
-        public async Task<bool> SaveAllAsync()
-        {
-            return await this._context.SaveChangesAsync() > 0;
-            // throw new System.NotImplementedException();
-        }
+        // thay bang unit of work
+        // public async Task<bool> SaveAllAsync()
+        // {
+        //     return await this._context.SaveChangesAsync() > 0;
+        //     // throw new System.NotImplementedException();
+        // }
 
         public void Update(AppUser user)
         {
             this._context.Entry(user).State = EntityState.Modified;
             // throw new System.NotImplementedException();
+        }
+        public async Task<string> GetUserGender(string username) {
+            var gender = await this._context.Users.Where(x => x.UserName == username)
+                                            .Select(x => x.Gender)
+                                            .FirstOrDefaultAsync();
+            return gender;
         }
     }
 }

@@ -22,16 +22,14 @@ namespace API.Controllers
     public class UsersController : BaseAPIController
     {
         //  private readonly DataContext _context;
-        private readonly IUserRepository _userRepository;
+        // private readonly IUserRepository _unitOfWork.UserRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IPhotoService _photoService;
 
-        public UsersController(IUserRepository userRepository,
-                               IMapper mapper,
-                               IPhotoService photoService
-                               )
+        public UsersController(IUnitOfWork unitOfWork , IMapper mapper , IPhotoService photoService)
         {
-            this._userRepository = userRepository;
+            this._unitOfWork = unitOfWork;
             this._mapper = mapper;
             this._photoService = photoService;
         }
@@ -46,22 +44,22 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
         {
-            // var users = await this._userRepository.GetUsersAsync();
+            // var users = await this._unitOfWork.UserRepository.GetUsersAsync();
             // var usersReturn = this._mapper.Map<IEnumerable<MemberDto>>(users);
             // return Ok(usersReturn);
             // return await this._context.User.ToListAsync();
            
             var username = User.getUserName();
-            var user = await this._userRepository.GetUserByUserNameAsync(username);
-            userParams.CurrentUsername = user.UserName;
+            var gender = await this._unitOfWork.UserRepository.GetUserGender(username);
+            userParams.CurrentUsername = User.getUserName() ; // lấy từ token
             // neu router trinh duyet ma Null thi gan nguoc gender 
             // lisa is female thi router se la male
             if(string.IsNullOrEmpty(userParams.Gender))
             {
-               var gender = user.Gender == "male" ? "female" : "male";
-               userParams.Gender = gender; //  set giá trị Gender cho UserParam
+               userParams.Gender = gender == "male" ? "female" : "male";
+              // userParams.Gender = gender; //  set giá trị Gender cho UserParam
             }
-            var users = await this._userRepository.GetMembersAsync(userParams);
+            var users = await this._unitOfWork.UserRepository.GetMembersAsync(userParams);
             // cập nhật lại header cho client sau khi thay doi Tham so Query o Router trinh duyet
             Response.AddPaginationHeader(users.CurrentPage, users.PageSize,
                 users.TotalCount, users.TotalPages);
@@ -71,11 +69,11 @@ namespace API.Controllers
         [HttpGet("{username}" , Name = "getUser")]
         public async Task<ActionResult<MemberDto>> getUser(string username)
         {
-            //  var user = await this._userRepository.GetUserByUserNameAsync(username);
+            //  var user = await this._unitOfWork.UserRepository.GetUserByUserNameAsync(username);
             //  var userReturn = this._mapper.Map<MemberDto>(user);
             // return userReturn;
 
-            var user = await this._userRepository.GetMemberAsync(username);
+            var user = await this._unitOfWork.UserRepository.GetMemberAsync(username);
             return user;
         }
         [HttpPut]
@@ -84,21 +82,21 @@ namespace API.Controllers
             // lay ra username login 
             var username = User.getUserName(); //.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             // var usernames = User.FindAll(ClaimTypes.NameIdentifier)?.GetEnumerator();
-            var user = await this._userRepository.GetUserByUserNameAsync(username);
+            var user = await this._unitOfWork.UserRepository.GetUserByUserNameAsync(username);
             // neu ko map kieu  this._mapper.Map(memberUpdateDto , user); nay phai nhap thu cong nhu vay 
             // user.city =  memberUpdateDto.city lam tung cai mot
             this._mapper.Map(memberUpdateDto, user); // tu dong map va gán TẤT CẢ value tu DTO qua user
-            this._userRepository.Update(user);
-            bool status = await this._userRepository.SaveAllAsync();
+            this._unitOfWork.UserRepository.Update(user);
+            bool status = await this._unitOfWork.Complete();
             if (status == true) return NoContent();
             return BadRequest("can not update member dto");
         }
         [HttpPost("add-photo")]
         public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
         {
-
+            
             var username = User.getUserName();
-            var user = await this._userRepository.GetUserByUserNameAsync(username);
+            var user = await this._unitOfWork.UserRepository.GetUserByUserNameAsync(username);
             // upload len Icloud
             var result = await this._photoService.AddPhotoAsync(file);
 
@@ -115,7 +113,7 @@ namespace API.Controllers
             }
             // photo vao photos trong user
             user.Photos.Add(photo);
-            if (await this._userRepository.SaveAllAsync()) // neu save vao database successful
+            if (await this._unitOfWork.Complete()) // neu save vao database successful
             {
                 var photo_dto = this._mapper.Map<PhotoDto>(photo);
                 return CreatedAtRoute("getUser" , new {username = user.UserName} , photo_dto);
@@ -126,7 +124,7 @@ namespace API.Controllers
         [HttpPut("set-main-photo/{photoId}")]
         public async Task<ActionResult> SetMainPhoto(int photoId){
             var username = User.getUserName();
-            var user = await this._userRepository.GetUserByUserNameAsync(username);
+            var user = await this._unitOfWork.UserRepository.GetUserByUserNameAsync(username);
             // current photo
             var photo = user.Photos.FirstOrDefault(x =>x.Id == photoId );
             // khong cap nhat isMain = true khi ban than no la isMain = true
@@ -137,7 +135,7 @@ namespace API.Controllers
             if(currentMain != null) currentMain.IsMain = false;
             // cập nhạt cai IsMain mới mà ta nhap vao tu trinh duyet là true
             photo.IsMain = true;
-            if(await this._userRepository.SaveAllAsync()) return NoContent();
+            if(await this._unitOfWork.Complete()) return NoContent();
             // neu có lỗi xảy ra
             return BadRequest("Can't Update IsMain Photo");
         }
@@ -145,7 +143,7 @@ namespace API.Controllers
         public async Task<ActionResult> DeletePhoto(int photoId) {
             
             var username = User.getUserName();
-            var user = await this._userRepository.GetUserByUserNameAsync(username);
+            var user = await this._unitOfWork.UserRepository.GetUserByUserNameAsync(username);
              // tim photo can delete
             var photo =  user.Photos.FirstOrDefault(x =>x.Id == photoId);
             if(photo == null) return NotFound();
@@ -157,7 +155,7 @@ namespace API.Controllers
             }
 
             user.Photos.Remove(photo);            
-            if(await this._userRepository.SaveAllAsync()) return NoContent();
+            if(await this._unitOfWork.Complete()) return NoContent();
             // neu có lỗi xảy ra
             return BadRequest("Can't Update IsMain Photo");
 

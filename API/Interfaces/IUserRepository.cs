@@ -9,7 +9,7 @@ namespace API.Interfaces
     public interface IUserRepository
     {
         void Update(AppUser user);
-        Task<bool> SaveAllAsync();
+       // Task<bool> SaveAllAsync(); thay bang unit of work
         Task<IEnumerable<AppUser>> GetUsersAsync();
         Task<AppUser> GetUserByUserNameAsync(string username);
         Task<AppUser> GetUserByIdAsync(int id);
@@ -18,5 +18,6 @@ namespace API.Interfaces
         // khai bao pagelist cùng với query trên router UserParams la tham số
         Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams); 
         Task<MemberDto> GetMemberAsync(string username);
+        Task<string> GetUserGender(string username);
     }
 }

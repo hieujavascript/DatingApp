@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HubConnection } from '@microsoft/signalr';
 import { Observable, of } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -25,6 +26,8 @@ export class MembersService {
   baseUrl: string = environment.apiUrl;
   user: User;
   userParams: UserParams;
+
+
   // tạo ra class và Interface 
   // interface có các property giống y chang Header sẽ nhận từ Response.header.get('Pagination')
   // class<T> là tập kết quả nhận đc thỏa với điều kiện đc trả về từ Server api router

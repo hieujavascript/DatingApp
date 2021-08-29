@@ -13,5 +13,7 @@ namespace API.Extensions
             var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             return userId;
         }
+
+        
     }
 }

@@ -70,8 +70,7 @@ namespace API.Data
             
         //     if(predicate == "liked")  { 
                 
-        //         likes = likes.Where(like => like.SourceUserId == userId);
-
+        //         likes = likes.Where(like => like.SourceUserId 
         //         users = likes.Select(like => like.LikedUser); // chi lay cot likeUser
         //     }
         //      if(predicate == "likedBy")  { // lay danh sach like ma user đang log like

@@ -4,15 +4,16 @@ import { ReplaySubject } from 'rxjs';
 import {map} from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { User } from '../_models/user';
+import { PresenceService } from './presence.service';
 @Injectable({
   providedIn: 'root'
 })
 export class AccountService {
-  baseUrl = environment.apiUrl; // " https://localhost:5001/api";
+  baseUrl = environment.apiUrl; 
   private currentUserSource = new ReplaySubject<User>(1);
   currentUser$ = this.currentUserSource.asObservable();
 
-  constructor(private http: HttpClient) { } // dung httpClient de thuc hien viec Request CURD den server  
+  constructor(private http: HttpClient , private presence: PresenceService) { } // dung httpClient de thuc hien viec Request CURD den server  
   // model se chua username va password khi chung ta gui request
   // account : controller ; 
   // login : HttpPost("login") 
@@ -24,6 +25,8 @@ export class AccountService {
       // localStorage.setItem("user" , JSON.stringify(user));  
       // this.currentUserSource.next(user);
       this.setCurrentUser(user);
+      // SignalR Create connection
+      this.presence.createHubConnection(user);
       }
     }));
   }
@@ -35,6 +38,7 @@ export class AccountService {
           // localStorage.setItem("user" , JSON.stringify(user));
           //this.currentUserSource.next(user);
           this.setCurrentUser(user);
+          this.presence.createHubConnection(user);
         }
         return user;
       })
@@ -56,8 +60,8 @@ export class AccountService {
   logout() {
     localStorage.removeItem("user");
     this.currentUserSource.next(null);
+    this.presence.stopHubConnection()
   }
-
   getDecodedToken(token: string) { //  giải mã token và trả về 1 JSON 
       return JSON.parse(atob(token.split(".")[1])); // bỏ bean . và lấy hết token phái sau TRẢ VỀ Object
   }

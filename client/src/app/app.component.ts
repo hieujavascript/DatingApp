@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { AccountService } from './_service/account.service';
+import { PresenceService } from './_service/presence.service';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,10 @@ import { AccountService } from './_service/account.service';
 })
 export class AppComponent implements OnInit {
   title = 'client App component';
-  constructor(private http: HttpClient , private accountService: AccountService) {
+  constructor(private http: HttpClient , 
+    private accountService: AccountService ,
+    private presence: PresenceService
+    ) {
   } 
   ngOnInit(): void {
     this.setCurrentUser();
@@ -19,6 +23,7 @@ export class AppComponent implements OnInit {
     if(user)
     {
       this.accountService.setCurrentUser(user);      
+      this.presence.createHubConnection(user);
     }
   }
 }

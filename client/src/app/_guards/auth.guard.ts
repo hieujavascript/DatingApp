@@ -8,6 +8,7 @@ import { AccountService } from '../_service/account.service';
 @Injectable({
   providedIn: 'root'
 })
+// CanActivate nếu nó là False , Route sẽ không được thông qua 
 export class AuthGuard implements CanActivate {
   constructor(private accountService: AccountService , private toastr: ToastrService) {}
   canActivate(): Observable<boolean> {

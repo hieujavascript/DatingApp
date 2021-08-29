@@ -17,7 +17,8 @@ namespace API.Entities
         // =======================================
         public string Content { get; set; }
         public DateTime? DateRead { get; set; } // co the null
-        public DateTime MessageSend { get; set; } = DateTime.Now; // ngay hien hanh
+//        public DateTime MessageSend { get; set; } = DateTime.Now; // ngay hien hanh
+        public DateTime MessageSend { get; set; } = DateTime.UtcNow; // ngay quoc tế server 
         public bool SenderDelete { get; set; }
         public bool RecipientDelete { get; set; }
         

@@ -47,6 +47,7 @@ namespace API.Controllers
         [HttpPost("edit-roles/{username}")]
         public async Task<ActionResult> EditResult(string username , [FromQuery] string roles) {
             var selectRoles = roles.Split(",").ToArray();
+            // tìm ra đối tượng user
             var user = await this._userManager.FindByNameAsync(username);
             // trả về danh sách role name mà user đó đang nằm trong đó
             var userRoles = await this._userManager.GetRolesAsync(user); 

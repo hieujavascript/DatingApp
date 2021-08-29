@@ -1,10 +1,12 @@
 import {  Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgxGalleryAnimation, NgxGalleryImage, NgxGalleryOptions } from '@kolkov/ngx-gallery';
 import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
 import { take } from 'rxjs/operators';
 import { Member } from 'src/app/_models/member';
 import { Message } from 'src/app/_models/message';
+import { User } from 'src/app/_models/user';
+import { AccountService } from 'src/app/_service/account.service';
 import { MembersService } from 'src/app/_service/members.service';
 import { MessageService } from 'src/app/_service/message.service';
 
@@ -21,12 +23,19 @@ export class MemberDetailComponent implements OnInit , OnDestroy {
   galleryOptions: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[];
   paramSelectTab: number = -1;
+  user: User;
   constructor(private memberService: MembersService , 
     private route:ActivatedRoute ,
-    private messageService: MessageService 
-    ) { }
+    private messageService: MessageService,
+    private acccountService: AccountService , 
+    private router: Router
+    ) {
+        this.acccountService.currentUser$.pipe(take(1)).subscribe(user => this.user = user);
+        // không lưu lại cache của router , vi vây khi Hub gửi message Angular sẽ làm mới router
+        this.router.routeReuseStrategy.shouldReuseRoute = () => false;
+     }
   ngOnInit(): void {
-   
+  
     this.route.data.subscribe(data => {
       //resolve: {member: MemberDetailedResolver} trong app.routing.module.ts
       this.member = data.member; // member sẽ lấy trước khi contructor khoi tao template
@@ -60,20 +69,29 @@ export class MemberDetailComponent implements OnInit , OnDestroy {
   }
  onTabActivated(data: TabDirective) {
     this.activeTab = data;
+    // nếu Tag là message thì Load Messsign từ SingR
     if(this.activeTab.heading === "Messages" && this.messages.length === 0 ) {
-      this.loadMessage();
+      // load message từ Api
+      // this.loadMessage(); 
+      //load Message từ Singl R
+      this.messageService.createHubConnection(this.user , this.member.username);
     }
+    else 
+    { 
+      this.messageService.stopHubConnection(); 
+    }
+
   }
   loadMessage() {
     this.messageService.getMessageThread(this.member.username).subscribe(message => {
-      this.messages = message;
-      
+      this.messages = message;      
     })
   }
   selectTab(tabId: number) {
     this.memberTabs.tabs[tabId].active = true;
   }
+  // khi không activite Tag thì phải hủy Conection của SignR
   ngOnDestroy(): void {
-   // this.messageService.stopHubConnection();
+    this.messageService.stopHubConnection();
   }
 }

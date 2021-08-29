@@ -21,6 +21,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using API.extensions;
 using API.Middleware;
+using API.SignalR;
+
 namespace API
 {
     public class Startup
@@ -41,6 +43,7 @@ namespace API
             services.AddControllers();
             services.AddCors();
             services.AddIdentityService(this._config);
+            services.AddSignalR();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
@@ -60,14 +63,24 @@ namespace API
             app.UseHttpsRedirection();
 
             app.UseRouting();
-            app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
+            app.UseCors(x => x.AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials() // cho phép Client send access_toke , hoặc token
+            .WithOrigins("https://localhost:4200"));
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseDefaultFiles(); // sử dụng StaticFile
+            app.UseStaticFiles();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<PresenceHub>("hubs/presence"); // gọi trogn client cho khớp làm api
+                endpoints.MapHub<MessageHub>("hubs/message");
+                endpoints.MapFallbackToController("Index" , "FallBack");
             });
+            
         }
     }
 }

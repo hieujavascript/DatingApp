@@ -3,6 +3,7 @@ using API.Entities;
 using API.Dtos;
 using System.Linq;
 using API.extensions;
+using System;
 
 namespace API.Helpers
 {
@@ -30,6 +31,10 @@ namespace API.Helpers
                     .ForMember(dest => dest.RecipientPhotoUrl , 
                                opt => opt.MapFrom(src => src.Recipient.Photos.FirstOrDefault(i => i.IsMain).Url)
                               );
+            // cover kieu Date la UTC khi tra ve Client vào lúc runtime
+            // da lam trogn DB context
+            //CreateMap<DateTime , DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d , DateTimeKind.Utc));
+            // CreateMap<Connection , ConnectionDTO>();    
         }
     }
 }

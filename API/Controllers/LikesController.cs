@@ -7,19 +7,16 @@ using API.Helpers;
 using API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using API.Data;
 namespace API.Controllers
 {
     [Authorize]
     public class LikesController : BaseAPIController
-    {        
-        private readonly IUserRepository _userRepository;
-        private readonly ILikeRepository _likeRepository;
-
-        public LikesController(IUserRepository userRepository , ILikeRepository likeRepository )
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        public LikesController(IUnitOfWork unitOfWork )
         {
-            this._userRepository = userRepository;
-            this._likeRepository = likeRepository;
+            this._unitOfWork = unitOfWork;
         }
 
         [HttpPost("{username}")]
@@ -27,15 +24,15 @@ namespace API.Controllers
             // user login
             var sourceUserId = User.getUserId();
             // lay user khi user khi login
-            var likeUser = await this._userRepository.GetUserByUserNameAsync(username);
+            var likeUser = await this._unitOfWork.UserRepository.GetUserByUserNameAsync(username);
             // tra ve User co like
-            var sourceUser = await this._likeRepository.GetUserWithLikes(sourceUserId);
+            var sourceUser = await this._unitOfWork.LikeRepository.GetUserWithLikes(sourceUserId);
 
             if(likeUser == null) return NotFound();// khong tim thay user ma ho muôn like
             if(sourceUser.UserName == username) return BadRequest("you can't like your self");
                       
             // nếu user like người mình đã like==========================================
-            var userLike = await this._likeRepository.GetUserLike(sourceUserId , likeUser.Id);
+            var userLike = await this._unitOfWork.LikeRepository.GetUserLike(sourceUserId , likeUser.Id);
             if(userLike != null) return BadRequest("you already like this user");
             // ==========================================================================
             // neu khong co thi tao moi
@@ -44,7 +41,7 @@ namespace API.Controllers
                 LikedUserId = likeUser.Id
             };
             sourceUser.LikedUsers.Add(userLike);
-            if(await this._userRepository.SaveAllAsync()) return Ok();
+            if(await this._unitOfWork.Complete()) return Ok();
 
             return BadRequest("Fail to like user");
         }
@@ -54,7 +51,7 @@ namespace API.Controllers
             // sử dụng 2 tham số nen tao 2 property trong likeParam la predicate , UserId
             likeParams.UserId = User.getUserId();
             // tra ve 1 page list cho user
-            var users = await this._likeRepository.GetUserLikes(likeParams);
+            var users = await this._unitOfWork.LikeRepository.GetUserLikes(likeParams);
             // add vài Header là một Extension để client lấy ra
             Response.AddPaginationHeader(users.CurrentPage , 
                                         users.PageSize , 
@@ -65,7 +62,7 @@ namespace API.Controllers
         // public async Task<ActionResult<IEnumerable<LikeDto>>> GetUserLikes(string predicate)
         // {
         //     // sử dụng 2 tham số nen tao 2 property trong likeParam la predicate , UserId
-        //     var users = await this._likeRepository.GetUserLikes(predicate , User.getUserId());
+        //     var users = await this._unitOfWork.LikeRepository.GetUserLikes(predicate , User.getUserId());
         //     return Ok(users);
         // }
     }

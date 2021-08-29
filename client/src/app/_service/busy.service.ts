@@ -4,7 +4,7 @@ import { NgxSpinnerService } from 'ngx-spinner';
 @Injectable({
   providedIn: 'root'
 })
-export class BusyService {
+export class BusyService { // Icon Load ngxBootstrap Templaet
 
   busyRequestCount = 0;
   constructor(private spinnerService: NgxSpinnerService) { }
