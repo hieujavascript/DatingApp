@@ -4,9 +4,8 @@
 
 export const environment = {
   production: false , 
-  apiUrl: "https://localhost:5001/api/" , 
-  hubUrl: "https://localhost:5001/hubs/",
-  hieu: "https://localhost:5001/hubs/"
+  apiUrl: "https://datingappnet.herokuapp.com/api/" , 
+  hubUrl: "https://datingappnet.herokuapp.com/hubs/",
 };
 
 /*
@@ -15,5 +14,6 @@ export const environment = {
  *
  * This import should be commented out in production mode because it will have a negative impact
  * on performance if an error is thrown.
- */
+ *///apiUrl: "https://localhost:5001/api/" , datingappnet.herokuapp.com
+  //hubUrl: "https://localhost:5001/hubs/",https://datingappnet.herokuapp.com/
 // import 'zone.js/dist/zone-error';  // Included with Angular CLI.

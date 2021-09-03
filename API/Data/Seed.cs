@@ -42,8 +42,8 @@ namespace API.Data
                 //  user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd"));
                 //  user.PasswordSalt = hmac.Key;
                //  context.Users.Add(user);
-               //  await userManager.CreateAsync(user , "Pa$$w0rd" );
-               await userManager.CreateAsync(user , "123456Asd" );
+                 await userManager.CreateAsync(user , "Pa11247w0rd" );
+               // await userManager.CreateAsync(user , "123456Asd" );
                 // Add user in Role Member
                 await userManager.AddToRoleAsync(user , "Member");                          
              }
@@ -52,8 +52,8 @@ namespace API.Data
     // viet thuong , no se tham 1 username ten Admin vao ben trong AppUser de login quyen admin
                 UserName = "admin"  // UserName viet hoa vi trong AppUser viet nhu the
             };
-            //await userManager.CreateAsync(admin , "Pa$$w0rd");
-            await userManager.CreateAsync(admin , "123456Asd");
+            await userManager.CreateAsync(admin , "Pa11247w0rd");
+            //await userManager.CreateAsync(admin , "123456Asd");
             await userManager.AddToRolesAsync(admin , new[] {"Admin" , "Moderator"} );   
                             
             // await userManager.AddToRolesAsync(admin , new List<string>{"Admin" , "Moderator"} );

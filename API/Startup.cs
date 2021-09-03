@@ -67,6 +67,7 @@ namespace API
             .AllowAnyMethod()
             .AllowCredentials() // cho phép Client send access_toke , hoặc token
             .WithOrigins("https://localhost:4200"));
+            //.WithOrigins("https://datingappnet.herokuapp.com")) ;        
             app.UseAuthentication();
             app.UseAuthorization();
 

@@ -33,14 +33,6 @@ namespace API.Controllers
             this._mapper = mapper;
             this._photoService = photoService;
         }
-        // get data from client : https://localhost:5001/api/users
-        // public ActionResult<IEnumerable<AppUser>> getUsers() {
-        //    var user = this._context.User.ToList();
-        //    return user;
-        // }
-
-
-       // [Authorize(Roles = "Admin")] // nhung nen dung AdminController Policy cho Role
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
         {
